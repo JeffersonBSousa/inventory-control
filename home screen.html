@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Estoque</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Controle de Estoque</h1>
+    <form id="stockForm">
+      <input type="text" id="itemName" placeholder="Nome do Item" required>
+      <input type="number" id="itemQuantity" placeholder="Quantidade" required>
+      <button type="submit">Adicionar Item</button>
+    </form>
+    <!-- Adicione este campo de entrada para pesquisa -->
+    <input type="text" id="searchInput" placeholder="Pesquisar por nome do item">
+    <ul id="stockList">
+      <!-- Os itens serão adicionados dinamicamente aqui -->
+    </ul>
+  </div>
+
+  <script src="homeScreen.js"></script>
+</body>
+</html>
