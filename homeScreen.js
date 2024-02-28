@@ -57,6 +57,7 @@ function showStockReport(reportData, reportWindow) {
           </tr>
         `).join('')}
       </table>
+      <button id="exportCSVButton">Exportar como CSV</button> <!-- Botão de exportar como CSV -->
     </body>
     </html>
   `;
@@ -66,8 +67,22 @@ function showStockReport(reportData, reportWindow) {
 
   // Chama a função de impressão após o conteúdo ter sido completamente carregado
   reportWindow.onload = function () {
+    reportWindow.document.getElementById("exportCSVButton").addEventListener("click", function() {
+      exportStockToCSV(reportData);
+    });
     reportWindow.print();
   };
+}
+function exportStockToCSV(stockData) {
+  const csvContent = "data:text/csv;charset=utf-8," +
+    stockData.map(item => `${item.name},${item.quantity}`).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "estoque.csv");
+  document.body.appendChild(link);
+  link.click();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -95,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const stockList = document.getElementById('stockList');
   const searchInput = document.getElementById('searchInput');
   const viewStockButton = document.getElementById('viewStockButton');
-  const printButton = document.getElementById('printButton'); // Seleciona o botão de impressão
 
   stockForm.addEventListener('submit', function (event) {
     event.preventDefault();
@@ -120,10 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   viewStockButton.addEventListener('click', function () {
-    displayStockReport(db); // Passa a variável db como parâmetro
-  });
-
-  printButton.addEventListener('click', function () {
     displayStockReport(db); // Passa a variável db como parâmetro
   });
 
@@ -235,6 +245,19 @@ document.addEventListener('DOMContentLoaded', function () {
     request.onerror = function (event) {
       console.log('Erro ao buscar o item:', event.target.errorCode);
     };
+  }
+
+  // Função para exportar o estoque como CSV
+  function exportStockToCSV(stockData) {
+    const csvContent = "data:text/csv;charset=utf-8," +
+      stockData.map(item => `${item.name},${item.quantity}`).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "estoque.csv");
+    document.body.appendChild(link);
+    link.click();
   }
 
   // Função para mudar o idioma da interface do usuário
