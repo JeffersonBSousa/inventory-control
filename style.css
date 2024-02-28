@@ -76,7 +76,8 @@ li {
 }
 
 .item-actions button {
-  flex: 0 0 48%; /* Define a largura dos botões */
+  flex: 0 0 48%;
+  /* Define a largura dos botões */
 }
 
 .item-quantity {
@@ -96,4 +97,15 @@ button.remove-button {
 
 button.remove-button:hover {
   background-color: #c82333;
+}
+
+/* Estilo para o botão de relatório */
+#viewStockButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
 }
