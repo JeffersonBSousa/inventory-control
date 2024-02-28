@@ -1,18 +1,90 @@
-document.addEventListener('DOMContentLoaded', function() {
+function displayStockReport(db) {
+  const objectStore = db.transaction('stock').objectStore('stock');
+  const stockReport = [];
+
+  objectStore.openCursor().onsuccess = function (event) {
+    const cursor = event.target.result;
+
+    if (cursor) {
+      stockReport.push({ name: cursor.value.name, quantity: cursor.value.quantity });
+      cursor.continue();
+    } else {
+      // Abrir uma nova guia para exibir o relatório
+      const reportWindow = window.open('', '_blank');
+      if (reportWindow) {
+        showStockReport(stockReport, reportWindow);
+      } else {
+        alert('Por favor, habilite pop-ups para visualizar o relatório.');
+      }
+    }
+  };
+}
+
+function showStockReport(reportData, reportWindow) {
+  const reportContent = `
+    <html>
+    <head>
+      <title>Relatório de Estoque</title>
+      <style>
+        #stockReport {
+          text-align: center;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+        th, td {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+        }
+        th {
+          background-color: #f2f2f2;
+        }
+      </style>
+    </head>
+    <body>
+      <h2 id="stockReport">Relatório de Estoque</h2>
+      <table>
+        <tr>
+          <th>Nome do Item</th>
+          <th>Quantidade</th>
+        </tr>
+        ${reportData.map(item => `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.quantity}</td>
+          </tr>
+        `).join('')}
+      </table>
+    </body>
+    </html>
+  `;
+
+  reportWindow.document.write(reportContent);
+  reportWindow.document.close(); // Fecha o documento para que o conteúdo seja considerado completamente carregado
+
+  // Chama a função de impressão após o conteúdo ter sido completamente carregado
+  reportWindow.onload = function() {
+    reportWindow.print();
+  };
+}
+
+document.addEventListener('DOMContentLoaded', function () {
   let db;
   const request = window.indexedDB.open('stockDB', 1);
 
-  request.onerror = function(event) {
+  request.onerror = function (event) {
     console.log('Erro ao abrir o banco de dados:', event.target.errorCode);
   };
 
-  request.onsuccess = function(event) {
+  request.onsuccess = function (event) {
     db = event.target.result;
     displayStock();
     changeLanguage(); // Chama a função para mudar o idioma ao carregar a página
   };
 
-  request.onupgradeneeded = function(event) {
+  request.onupgradeneeded = function (event) {
     db = event.target.result;
     const objectStore = db.createObjectStore('stock', { keyPath: 'id', autoIncrement: true });
     objectStore.createIndex('name', 'name', { unique: false });
@@ -22,8 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const stockForm = document.getElementById('stockForm');
   const stockList = document.getElementById('stockList');
   const searchInput = document.getElementById('searchInput');
+  const viewStockButton = document.getElementById('viewStockButton');
+  const printButton = document.getElementById('printButton'); // Seleciona o botão de impressão
 
-  stockForm.addEventListener('submit', function(event) {
+  stockForm.addEventListener('submit', function (event) {
     event.preventDefault();
 
     const itemNameInput = document.getElementById('itemName');
@@ -41,8 +115,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  searchInput.addEventListener('input', function() {
+  searchInput.addEventListener('input', function () {
     displayStock(this.value.trim().toLowerCase()); // Chama a função displayStock com o valor de pesquisa
+  });
+
+  viewStockButton.addEventListener('click', function () {
+    displayStockReport(db); // Passa a variável db como parâmetro
+  });
+
+  printButton.addEventListener('click', function () {
+    displayStockReport(db); // Passa a variável db como parâmetro
   });
 
   function addItemToDB(name, quantity) {
@@ -55,11 +137,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const request = objectStore.add(newItem);
 
-    request.onsuccess = function() {
+    request.onsuccess = function () {
       displayStock();
     };
 
-    request.onerror = function(event) {
+    request.onerror = function (event) {
       console.log('Erro ao adicionar item:', event.target.errorCode);
     };
   }
@@ -70,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const objectStore = db.transaction('stock').objectStore('stock');
-    objectStore.openCursor().onsuccess = function(event) {
+    objectStore.openCursor().onsuccess = function (event) {
       const cursor = event.target.result;
 
       if (cursor) {
@@ -82,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const removeButton = document.createElement('button');
           removeButton.textContent = 'Remover';
           removeButton.dataset.itemId = cursor.key;
-          removeButton.addEventListener('click', function() {
+          removeButton.addEventListener('click', function () {
             const itemId = parseInt(this.dataset.itemId); // Converte o ID do item para número
             removeItem(itemId);
           });
@@ -91,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
           updateButton.textContent = 'Atualizar';
           updateButton.classList.add('small-button'); // Adiciona a classe para tornar o botão menor
           updateButton.dataset.itemId = cursor.key;
-          updateButton.addEventListener('click', function() {
+          updateButton.addEventListener('click', function () {
             const newQuantity = parseInt(prompt('Digite a nova quantidade:'));
             if (!isNaN(newQuantity) && newQuantity >= 0) {
               const itemId = parseInt(this.dataset.itemId); // Converte o ID do item para número
@@ -112,18 +194,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function removeItem(id) {
-    const transaction = db.transaction(['stock'], 'readwrite');
-    const objectStore = transaction.objectStore('stock');
-    const request = objectStore.delete(id);
-
-    request.onsuccess = function() {
-      displayStock();
-    };
-
-    request.onerror = function(event) {
-      console.log('Erro ao remover item:', event.target.errorCode);
-    };
-  }
+    const isConfirmed = window.confirm('Tem certeza de que deseja remover este item?');
+    if (isConfirmed) {
+        const transaction = db.transaction(['stock'], 'readwrite');
+        const objectStore = transaction.objectStore('stock');
+        const request = objectStore.delete(id);
+    
+        request.onsuccess = function() {
+            displayStock();
+        };
+    
+        request.onerror = function(event) {
+            console.log('Erro ao remover item:', event.target.errorCode);
+        };
+    } else {
+        console.log('Operação de remoção cancelada.');
+    }
+}
 
   // Função para atualizar a quantidade do item
   function updateItemQuantity(id, newQuantity) {
@@ -131,21 +218,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const objectStore = transaction.objectStore('stock');
     const request = objectStore.get(id);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function (event) {
       const data = event.target.result;
       if (data) {
         data.quantity = newQuantity;
         const updateRequest = objectStore.put(data);
-        updateRequest.onsuccess = function() {
+        updateRequest.onsuccess = function () {
           displayStock(); // Atualiza a lista após a alteração da quantidade
         };
-        updateRequest.onerror = function(event) {
+        updateRequest.onerror = function (event) {
           console.log('Erro ao atualizar a quantidade:', event.target.errorCode);
         };
       }
     };
 
-    request.onerror = function(event) {
+    request.onerror = function (event) {
       console.log('Erro ao buscar o item:', event.target.errorCode);
     };
   }
