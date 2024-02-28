@@ -65,7 +65,7 @@ function showStockReport(reportData, reportWindow) {
   reportWindow.document.close(); // Fecha o documento para que o conteúdo seja considerado completamente carregado
 
   // Chama a função de impressão após o conteúdo ter sido completamente carregado
-  reportWindow.onload = function() {
+  reportWindow.onload = function () {
     reportWindow.print();
   };
 }
@@ -196,21 +196,21 @@ document.addEventListener('DOMContentLoaded', function () {
   function removeItem(id) {
     const isConfirmed = window.confirm('Tem certeza de que deseja remover este item?');
     if (isConfirmed) {
-        const transaction = db.transaction(['stock'], 'readwrite');
-        const objectStore = transaction.objectStore('stock');
-        const request = objectStore.delete(id);
-    
-        request.onsuccess = function() {
-            displayStock();
-        };
-    
-        request.onerror = function(event) {
-            console.log('Erro ao remover item:', event.target.errorCode);
-        };
+      const transaction = db.transaction(['stock'], 'readwrite');
+      const objectStore = transaction.objectStore('stock');
+      const request = objectStore.delete(id);
+
+      request.onsuccess = function () {
+        displayStock();
+      };
+
+      request.onerror = function (event) {
+        console.log('Erro ao remover item:', event.target.errorCode);
+      };
     } else {
-        console.log('Operação de remoção cancelada.');
+      console.log('Operação de remoção cancelada.');
     }
-}
+  }
 
   // Função para atualizar a quantidade do item
   function updateItemQuantity(id, newQuantity) {
