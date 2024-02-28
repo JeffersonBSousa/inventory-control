@@ -74,8 +74,13 @@ function showStockReport(reportData, reportWindow) {
   };
 }
 function exportStockToCSV(stockData) {
-  const csvContent = "data:text/csv;charset=utf-8," +
-    stockData.map(item => `${item.name},${item.quantity}`).join("\n");
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Nome do Item;Quantidade\n"; // Cabeçalho das colunas
+
+  stockData.forEach(item => {
+    const row = `${item.name};${item.quantity}\n`; // Uma linha por item com nome e quantidade em colunas separadas
+    csvContent += row;
+  });
 
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
