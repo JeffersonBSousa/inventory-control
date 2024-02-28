@@ -65,7 +65,7 @@ function showStockReport(reportData, reportWindow) {
   reportWindow.document.write(reportContent);
   reportWindow.document.close(); // Fecha o documento para que o conteúdo seja considerado completamente carregado
 
-  // Chama a função de impressão após o conteúdo ter sido completamente carregado
+  // Chama a função de impressão após o conteúdo ter sido carregado
   reportWindow.onload = function () {
     reportWindow.document.getElementById("exportCSVButton").addEventListener("click", function() {
       exportStockToCSV(reportData);
